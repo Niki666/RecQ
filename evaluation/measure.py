@@ -56,6 +56,19 @@ class Measure(object):
             return error
         return math.sqrt(float(error)/count)
 
+    # @staticmethod
+    # def NMAE(res):
+    #     error = 0
+    #     count = 0
+    #     for key1 in res:
+    #         for lst in res[key1]:
+    #             error += abs(lst[1] - lst[2])
+    #             count += 1
+    #     if count == 0:
+    #         return error
+    #     mae = float(error) / count
+    #     return mae / max() - min()
+
     @staticmethod
     def precision(hits,N):
         prec = sum([hits[user] for user in hits])
@@ -65,6 +78,14 @@ class Measure(object):
     def recall(hits,origin):
         recall = sum([float(hits[user])/len(origin[user]) for user in hits])/len(hits)
         return recall
+
+    @staticmethod
+    def F1(hits,N,origin):
+        prec = sum([hits[user] for user in hits])
+        p = float(prec)/(len(hits)*N)
+        r = sum([float(hits[user])/len(origin[user]) for user in hits])/len(hits)
+        F1 = 2*p*r/(p+r)
+        return F1
 
 
 
