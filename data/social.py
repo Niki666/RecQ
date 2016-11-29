@@ -5,6 +5,7 @@ from tool.qmath import normalize
 import os.path
 from re import split
 
+
 class SocialDAO(object):
     def __init__(self,conf):
         self.config = conf

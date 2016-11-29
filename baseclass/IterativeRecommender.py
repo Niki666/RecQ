@@ -18,7 +18,7 @@ class IterativeRecommender(Recommender):
         self.maxLRate = float(learningRate['-max'])
         # regularization parameter
         regular = config.LineConfig(self.config['reg.lambda'])
-        self.regU,self.regI,self.regB= float(regular['-u']),float(regular['-i']),float(regular['-b'])
+        self.regU,self.regI,self.regB,self.regA= float(regular['-u']),float(regular['-i']),float(regular['-b']),float(regular['-a'])
 
     def printAlgorConfig(self):
         super(IterativeRecommender, self).printAlgorConfig()
