@@ -1,4 +1,5 @@
-# RecQ #
+![RecQ](http://chuantu.biz/t5/43/1480095308x760008152.png)
+
 Released by School of Software Engineering, Chongqing University
 ##Introduction##
 **RecQ** is a Python library for recommender systems (Python 2.7.x). It implements a suit of state-of-the-art recommendations. To run RecQ easily (no need to setup packages used in RecQ one by one), the leading open data science platform  [**Anaconda**](https://www.continuum.io/downloads) is strongly recommended. It integrates Python interpreter, common scientific computing libraries (such as Numpy, Pandas, and Matplotlib), and package manager, all of them make it a perfect tool for data science researcher.
@@ -10,9 +11,10 @@ To design it exquisitely, we brought some thoughts from another recommender syst
 
 ##Features##
 * **Cross-platform**: as a Python software, RecQ can be easily deployed and executed in any platforms, including MS Windows, Linux and Mac OS.
-* **Fast execution**: RecQ is based on the fast scientific computing libraries such as Numpy and some light common data structures, which make it runs much faster than other libraries based on Python.
+* **Fast execution**: RecQ is based on the fast scientific computing libraries such as Numpy and some light common data structures, which make it run much faster than other libraries based on Python.
 * **Easy configuration**: RecQ configs recommenders using a configuration file.
 * **Easy expansion**: RecQ provides a set of well-designed recommendation interfaces by which new algorithms can be easily implemented.
+* **<font color="red">Data visualization</font>**: RecQ can help visualize the input dataset without running any algorithm. 
 
 ##How to Run it##
 * 1.Configure the **xx.conf** file in the directory named config. (xx is the name of the algorithm you want to run)

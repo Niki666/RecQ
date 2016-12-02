@@ -10,26 +10,30 @@ class RatingDAO(object):
     def __init__(self,config):
         self.config = config
         self.ratingConfig = LineConfig(config['ratings.setup'])
-        self.evaluation = LineConfig(config['evaluation.setup'])
         self.user = {} #used to store the order of users
         self.item = {} #used to store the order of items
         self.userMeans = {} #used to store the mean values of users's ratings
         self.itemMeans = {} #used to store the mean values of items's ratings
-        self.triple = [] #training data
+        self.trainingData = [] #training data
+        self.testData = [] #testData
         self.globalMean = 0
         self.timestamp = {}
-        self.ratingMatrix = None
         self.trainingMatrix = None
         self.validationMatrix = None
-        self.testSet_u = None # used to store the test set by hierarchy user:[item,rating]
-        self.testSet_i = None # used to store the test set by hierarchy item:[user,rating]
-        self.rScale = [-9999999,999999]
-        if self.evaluation.contains('-testSet'):
-            #specify testSet
+        self.testSet_u = {} # used to store the test set by hierarchy user:[item,rating]
+        self.testSet_i = {} # used to store the test set by hierarchy item:[user,rating]
+        self.rScale = []
+        if self.config.contains('evaluation.setup'):
+            self.evaluation = LineConfig(config['evaluation.setup'])
+            if self.evaluation.contains('-testSet'):
+                #specify testSet
+                self.trainingMatrix = self.__loadRatings(config['ratings'])
+                self.testSet_u,self.testSet_i = self.__loadRatings(self.evaluation['-testSet'],True)
+            else:
+                # cross validation and leave-one-out
+                pass
+        else:
             self.trainingMatrix = self.__loadRatings(config['ratings'])
-            self.testSet_u,self.testSet_i = self.__loadRatings(self.evaluation['-testSet'],True)
-        else: #cross validation and leave-one-out
-            self.ratingMatrix = self.__loadRatings(config['ratings'])
         self.__computeItemMean()
         self.__computeUserMean()
         self.__globalAverage()
@@ -51,19 +55,20 @@ class RatingDAO(object):
         u_i_r = {}
         i_u_r = {}
         triple = []
+        scale = set()
         #find the maximum rating and minimum value
         for lineNo,line in enumerate(ratings):
             items = split(' |,|\t',line.strip())
             if len(order) < 3:
                 print 'The rating file is not in a correct format. Error: Line num %d' %lineNo
                 exit(-1)
-            userId =  items[int(order[0])]
-            itemId =  items[int(order[1])]
-            rating =  items[int(order[2])]
-            if float(rating) > self.rScale[0]:
-                self.rScale[0] = float(rating)
-            if float(rating) < self.rScale[1]:
-                self.rScale[1] = float(rating)
+            try:
+                rating =  items[int(order[2])]
+                scale.add(float(rating))
+            except ValueError:
+                print 'Error! Have you added the option -header to the rating.setup?'
+        self.rScale = list(scale)
+        self.rScale.sort()
 
         for lineNo,line in enumerate(ratings):
             items = split(' |,|\t',line.strip())
@@ -75,7 +80,7 @@ class RatingDAO(object):
             rating =  items[int(order[2])]
 
             #makes the rating within the range [0, 1].
-            normRating = normalize(float(rating),self.rScale[0],self.rScale[1])
+            normRating = normalize(float(rating),self.rScale[-1],self.rScale[0])
             #order the user
             if not self.user.has_key(userId):
                 self.user[userId] = len(self.user)
@@ -90,8 +95,10 @@ class RatingDAO(object):
                 i_u_r[itemId] = []
             i_u_r[itemId].append([userId,float(rating)])
             if not bTest:
-                self.triple.append([userId,itemId,normRating])
+                self.trainingData.append([userId,itemId,normRating])
                 triple.append([self.user[userId],self.item[itemId],normRating])
+            else:
+                self.testData.append([userId,itemId,normRating])
 
         if not bTest:
             #contruct the sparse matrix
@@ -162,10 +169,10 @@ class RatingDAO(object):
             return -1
 
     def trainingSize(self):
-        return self.trainingMatrix.size
+        return (self.trainingMatrix.size[0],self.trainingMatrix.size[1],len(self.trainingData))
 
     def testSize(self):
-        return (len(self.testSet_u),len(self.testSet_i))
+        return (len(self.testSet_u),len(self.testSet_i),len(self.testData))
 
     def contains(self,u,i):
         'whether user u rated item i'

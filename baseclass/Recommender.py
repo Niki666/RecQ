@@ -38,8 +38,8 @@ class Recommender(object):
         if LineConfig(self.config['evaluation.setup']).contains('-testSet'):
             print 'Test set:',abspath(LineConfig(self.config['evaluation.setup']).getOption('-testSet'))
         #print 'Count of the users in training set: ',len()
-        print 'Training set size: (user count: %d, item count %d)' %(self.dao.trainingSize())
-        print 'Test set size: (user count: %d, item count %d)' %(self.dao.testSize())
+        print 'Training set size: (user count: %d, item count %d, record count: %d)' %(self.dao.trainingSize())
+        print 'Test set size: (user count: %d, item count %d, record count: %d)' %(self.dao.testSize())
         print '='*80
 
     def initModel(self):
@@ -59,10 +59,10 @@ class Recommender(object):
         pass
 
     def checkRatingBoundary(self,prediction):
-        if prediction > self.dao.rScale[0]:
+        if prediction > self.dao.rScale[-1]:
+            return self.dao.rScale[-1]
+        elif prediction < self.dao.rScale[0]:
             return self.dao.rScale[0]
-        elif prediction < self.dao.rScale[1]:
-            return self.dao.rScale[1]
         else:
             return round(prediction,3)
 
@@ -77,7 +77,7 @@ class Recommender(object):
                 #predict
                 prediction = self.predict(userId,itemId)
                 #denormalize
-                prediction = denormalize(prediction,self.dao.rScale[0],self.dao.rScale[1])
+                prediction = denormalize(prediction,self.dao.rScale[-1],self.dao.rScale[0])
                 #####################################
                 pred = self.checkRatingBoundary(prediction)
                 # add prediction in order to measure
@@ -112,7 +112,7 @@ class Recommender(object):
                 # predict
                 prediction = self.predict(userId, itemId)
                 # denormalize
-                prediction = denormalize(prediction, self.dao.rScale[0], self.dao.rScale[1])
+                prediction = denormalize(prediction, self.dao.rScale[-1], self.dao.rScale[0])
                 #####################################
                 pred = self.checkRatingBoundary(prediction)
                 # add prediction in order to measure
