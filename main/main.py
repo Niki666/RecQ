@@ -10,6 +10,8 @@ from algorithm.rating.ItemMean import ItemMean
 from algorithm.rating.SVD import SVD
 from algorithm.rating.PMF import PMF
 from algorithm.rating.WSF import WSF
+from algorithm.rating.WSS import WSS
+from algorithm.rating.WST import WST
 from tool.config import Config
 from visual.display import Display
 
@@ -20,7 +22,7 @@ if __name__ == '__main__':
     print '='*80
     print '0. Analyze the input data.(Configure the visual.conf in config/visual first.)'
     print '1. UserKNN   2. ItemKNN   3. BasicMF   4. SlopeOne   5. RSTE   6. UserMean'
-    print '7. ItemMean   8. SVD   9.PMF  10.WSF'
+    print '7. ItemMean   8. SVD   9.PMF  10.WSF  11.WSS  12.WST'
     algor = -1
     print '-'*80
     order = input('please enter the num of the algorithm to run it:')
@@ -65,6 +67,12 @@ if __name__ == '__main__':
     elif order == 10:
         conf = Config('../config/WSF.conf')
         algor = WSF(conf)
+    elif order == 11:
+        conf = Config('../config/WSS.conf')
+        algor = WSS(conf)
+    elif order == 12:
+        conf = Config('../config/WST.conf')
+        algor = WST(conf)
     else:
         print 'Error num!'
         exit(-1)
