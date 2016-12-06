@@ -8,24 +8,26 @@ import pickle
 
 
 
-class WSF(SocialRecommender):
+class WST(SocialRecommender):
     def __init__(self,conf):
-        super(WSF, self).__init__(conf)
+        super(WST, self).__init__(conf)
         self.config = conf
 
     def readConfiguration(self):
         super(SocialRecommender, self).readConfiguration()
-        alpha = config.LineConfig(self.config['WSF'])
+        alpha = config.LineConfig(self.config['WST'])
+        eta = config.LineConfig(self.config['WST'])
         self.alpha = float(alpha['-alpha'])
+        self.eta = float(eta['-eta'])
 
     def printAlgorConfig(self):
-        super(WSF, self).printAlgorConfig()
+        super(WST, self).printAlgorConfig()
         print 'Specified Arguments of', self.config['recommender'] + ':'
         print 'alpha: %.3f' % self.alpha
         print '=' * 80
 
     def initModel(self):
-        super(WSF, self).initModel()
+        super(WST, self).initModel()
         #construct graph
         G = nx.DiGraph()
         for re in self.sao.relation:
@@ -85,17 +87,13 @@ class WSF(SocialRecommender):
                 self.Q[i] += self.lRate*(self.alpha*error*p-self.regI*q)
                 if suv != 0:
                     for v in self.sao.getFollowees(u1):
-                        self.S[u1][v] += self.lRate*(1-self.alpha)*error*((self.dao.rating(v,i)*suv - trustRating)/(suv**2))
+                        vid = self.dao.getUserId(v)
+                        self.S[u1][v] += self.lRate*(1-self.alpha)*error*((self.dao.rating(v,i)*suv - trustRating)/(suv**2))-\
+                                         self.eta * (self.communication[vid] - self.S[u1][v])
 
             iteration += 1
             if self.isConverged(iteration):
                 break
-
-        #######
-        for u1 in self.S:
-            for u2 in self.S[u1]:
-                id = self.dao.getUserId(u2)
-                self.S[u1][u2]*=self.communication[id]
 
         self.sao.followees = self.S
 

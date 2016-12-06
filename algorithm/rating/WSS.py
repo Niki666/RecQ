@@ -8,34 +8,29 @@ import pickle
 
 
 
-class WSF(SocialRecommender):
+class WSS(SocialRecommender):
     def __init__(self,conf):
-        super(WSF, self).__init__(conf)
+        super(WSS, self).__init__(conf)
         self.config = conf
 
     def readConfiguration(self):
         super(SocialRecommender, self).readConfiguration()
-        alpha = config.LineConfig(self.config['WSF'])
+        alpha = config.LineConfig(self.config['WSS'])
         self.alpha = float(alpha['-alpha'])
 
     def printAlgorConfig(self):
-        super(WSF, self).printAlgorConfig()
+        super(WSS, self).printAlgorConfig()
         print 'Specified Arguments of', self.config['recommender'] + ':'
         print 'alpha: %.3f' % self.alpha
         print '=' * 80
 
     def initModel(self):
-        super(WSF, self).initModel()
+        super(WSS, self).initModel()
         #construct graph
         G = nx.DiGraph()
         for re in self.sao.relation:
             G.add_edge(re[0],re[1])
         #initialize new relation matrix
-        self.S = self.sao.followees.copy()
-        for u1 in self.S:
-            for u2 in self.S[u1]:
-                self.S[u1][u2] = np.random.rand()
-        #compute betweenness
         self.getBetweenCentrality(G)
 
     def getBetweenCentrality(self,G,load=True):
@@ -53,6 +48,15 @@ class WSF(SocialRecommender):
         for u in bt:
             uid = self.dao.getUserId(u)
             self.communication[uid] = bt[u]-min/diff
+
+        self.S = self.sao.followees.copy()
+        for u1 in self.S:
+            for u2 in self.S[u1]:
+                uid = self.dao.getUserId(u2)
+                self.S[u1][u2] = self.communication[uid]
+        #compute betweenness
+
+
 
     def buildModel(self):
         iteration = 0
@@ -92,11 +96,11 @@ class WSF(SocialRecommender):
                 break
 
         #######
-        for u1 in self.S:
-            for u2 in self.S[u1]:
-                id = self.dao.getUserId(u2)
-                self.S[u1][u2]*=self.communication[id]
-
+        # for u1 in self.S:
+        #     for u2 in self.S[u1]:
+        #         id = self.dao.getUserId(u2)
+        #         self.S[u1][u2]*=self.communication[id]
+        #
         self.sao.followees = self.S
 
 
