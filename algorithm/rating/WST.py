@@ -9,8 +9,8 @@ import pickle
 
 
 class WST(SocialRecommender):
-    def __init__(self,conf):
-        super(WST, self).__init__(conf)
+    def __init__(self,conf,trainingSet=None,testSet=None,fold='[1]'):
+        super(WST, self).__init__(conf,trainingSet,testSet,fold)
         self.config = conf
 
     def readConfiguration(self):
@@ -88,8 +88,8 @@ class WST(SocialRecommender):
                 if suv != 0:
                     for v in self.sao.getFollowees(u1):
                         vid = self.dao.getUserId(v)
-                        self.S[u1][v] += self.lRate*(1-self.alpha)*error*((self.dao.rating(v,i)*suv - trustRating)/(suv**2))-\
-                                         self.eta * (self.communication[vid] - self.S[u1][v])
+                        self.S[u1][v] += self.lRate*((1-self.alpha)*error*((self.dao.rating(v,i)*suv - trustRating)/(suv**2))-
+                                                     self.eta * (self.communication[vid] - self.S[u1][v]))
 
             iteration += 1
             if self.isConverged(iteration):
@@ -121,7 +121,7 @@ class WST(SocialRecommender):
             for followee in relations:
                 weight = relations[followee]
                 uf = self.dao.getUserId(followee)
-                if uf <> -1 and self.dao.containsUser(uf):  # followee is in rating set
+                if uf <> -1 and self.dao.containsUser(followee):  # followee is in rating set
                     fPred += weight * (self.P[uf].dot(self.Q[i]))
                     denom += weight
             u = self.dao.getUserId(u)

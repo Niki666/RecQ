@@ -9,8 +9,8 @@ import pickle
 
 
 class WSS(SocialRecommender):
-    def __init__(self,conf):
-        super(WSS, self).__init__(conf)
+    def __init__(self,conf,trainingSet=None,testSet=None,fold='[1]'):
+        super(WSS, self).__init__(conf,trainingSet,testSet,fold)
         self.config = conf
 
     def readConfiguration(self):
@@ -30,7 +30,7 @@ class WSS(SocialRecommender):
         G = nx.DiGraph()
         for re in self.sao.relation:
             G.add_edge(re[0],re[1])
-        #initialize new relation matrix
+        # compute betweenness
         self.getBetweenCentrality(G)
 
     def getBetweenCentrality(self,G,load=True):
@@ -54,7 +54,6 @@ class WSS(SocialRecommender):
             for u2 in self.S[u1]:
                 uid = self.dao.getUserId(u2)
                 self.S[u1][u2] = self.communication[uid]
-        #compute betweenness
 
 
 
@@ -101,7 +100,7 @@ class WSS(SocialRecommender):
         #         id = self.dao.getUserId(u2)
         #         self.S[u1][u2]*=self.communication[id]
         #
-        self.sao.followees = self.S
+        # self.sao.followees = self.S
 
 
 
@@ -127,7 +126,7 @@ class WSS(SocialRecommender):
             for followee in relations:
                 weight = relations[followee]
                 uf = self.dao.getUserId(followee)
-                if uf <> -1 and self.dao.containsUser(uf):  # followee is in rating set
+                if uf <> -1 and self.dao.containsUser(followee):  # followee is in rating set
                     fPred += weight * (self.P[uf].dot(self.Q[i]))
                     denom += weight
             u = self.dao.getUserId(u)

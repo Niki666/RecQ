@@ -14,16 +14,17 @@ from os.path import abspath
 from time import strftime,localtime,time
 from evaluation.measure import Measure
 class Recommender(object):
-    def __init__(self,conf):
+    def __init__(self,conf,trainingSet=None,testSet=None,fold='[1]'):
         self.config = conf
         self.dao = None
         self.isSaveModel = False
         self.ranking = None
         self.isLoadModel = False
         self.output = None
-        self.foldInfo = '[1]'
         self.isOutput = True
-        self.dao = RatingDAO(self.config)
+        self.dao = RatingDAO(self.config, trainingSet, testSet)
+        self.foldInfo = fold
+        self.measure = []
 
     def readConfiguration(self):
         self.algorName = self.config['recommender']
@@ -34,7 +35,7 @@ class Recommender(object):
     def printAlgorConfig(self):
         "show algorithm's configuration"
         print 'Algorithm:',self.config['recommender']
-        print 'Ratings dataSet:',abspath(self.config['ratings'])
+        print 'Ratings dataset:',abspath(self.config['ratings'])
         if LineConfig(self.config['evaluation.setup']).contains('-testSet'):
             print 'Test set:',abspath(LineConfig(self.config['evaluation.setup']).getOption('-testSet'))
         #print 'Count of the users in training set: ',len()
@@ -92,8 +93,8 @@ class Recommender(object):
         #output evaluation result
         outDir = self.output['-dir']
         fileName = self.config['recommender'] + '@'+currentTime +'-measure'+ self.foldInfo + '.txt'
-        measure = Measure.ratingMeasure(self.dao.testData)
-        FileIO.writeFile(outDir, fileName, measure)
+        self.measure = Measure.ratingMeasure(self.dao.testData)
+        FileIO.writeFile(outDir, fileName, self.measure)
 
     def evalRanking(self):
         res = []  # used to contain the text of the result
@@ -134,24 +135,25 @@ class Recommender(object):
         #output evaluation result
         outDir = self.output['-dir']
         fileName = self.config['recommender'] + '@' + currentTime + '-measure' + self.foldInfo + '.txt'
-        measure = Measure.rankingMeasure(self.dao.testSet_u,topNSet,N)
-        FileIO.writeFile(outDir, fileName, measure)
+        self.measure = Measure.rankingMeasure(self.dao.testSet_u,topNSet,N)
+        FileIO.writeFile(outDir, fileName, self.measure)
 
     def execute(self):
         self.readConfiguration()
-        self.printAlgorConfig()
+        if self.foldInfo == '[1]':
+            self.printAlgorConfig()
         #load model from disk or build model
         if self.isLoadModel:
-            print 'Loading model...'
+            print 'Loading model %s...' %(self.foldInfo)
             self.loadModel()
         else:
-            print 'Initializing model...'
+            print 'Initializing model %s...' %(self.foldInfo)
             self.initModel()
-            print 'Building Model...'
+            print 'Building Model %s...' %(self.foldInfo)
             self.buildModel()
 
         #preict the ratings or item ranking
-        print 'Predicting...'
+        print 'Predicting %s...' %(self.foldInfo)
         if self.ranking.isMainOn():
             self.evalRanking()
         else:
@@ -159,7 +161,9 @@ class Recommender(object):
 
         #save model
         if self.isSaveModel:
-            print 'Saving model...'
+            print 'Saving model %s...' %(self.foldInfo)
             self.saveModel()
+
+        return self.measure
 
 

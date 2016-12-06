@@ -7,6 +7,8 @@ class DataSplit(object):
 
     @staticmethod
     def dataSplit(data,test_ratio = 0.3,output=False,path='./',order=1):
+        if test_ratio>=1 or test_ratio <=0:
+            test_ratio = 0.3
         testSet = []
         trainingSet = []
         for entry in data:
@@ -21,5 +23,17 @@ class DataSplit(object):
         return trainingSet,testSet
 
     @staticmethod
-    def crossValidation(data,k,output,path):
-        pass
+    def crossValidation(data,k,output=False,path='./',order=1):
+        if k<=1 or k>10:
+            k=3
+        for i in range(k):
+            trainingSet = []
+            testSet = []
+            for ind,line in enumerate(data):
+                if ind%k == i:
+                    testSet.append(line[:])
+                else:
+                    trainingSet.append(line[:])
+            yield trainingSet,testSet
+
+
