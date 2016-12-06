@@ -9,12 +9,12 @@ import pickle
 
 
 class WST(SocialRecommender):
-    def __init__(self,conf,trainingSet=None,testSet=None,fold='[1]'):
-        super(WST, self).__init__(conf,trainingSet,testSet,fold)
+    def __init__(self,conf,trainingSet=None,testSet=None,relation=list(),fold='[1]'):
+        super(WST, self).__init__(conf,trainingSet,testSet,relation,fold)
         self.config = conf
 
     def readConfiguration(self):
-        super(SocialRecommender, self).readConfiguration()
+        super(WST, self).readConfiguration()
         alpha = config.LineConfig(self.config['WST'])
         eta = config.LineConfig(self.config['WST'])
         self.alpha = float(alpha['-alpha'])
@@ -41,7 +41,7 @@ class WST(SocialRecommender):
         self.getBetweenCentrality(G)
 
     def getBetweenCentrality(self,G,load=True):
-        self.communication = np.zeros(len(self.sao.user))
+        self.communication = np.zeros(len(self.dao.user))
         if not load:
             bt = nx.betweenness_centrality(G)
             output = open('between.pkl', 'wb')
@@ -88,8 +88,8 @@ class WST(SocialRecommender):
                 if suv != 0:
                     for v in self.sao.getFollowees(u1):
                         vid = self.dao.getUserId(v)
-                        self.S[u1][v] += self.lRate*((1-self.alpha)*error*((self.dao.rating(v,i)*suv - trustRating)/(suv**2))-
-                                                     self.eta * (self.communication[vid] - self.S[u1][v]))
+                        self.S[u1][v] += self.lRate*((1-self.alpha)*error*((self.dao.rating(v,i)*suv - trustRating)/(suv**2))-\
+                                         self.eta * (self.communication[vid] - self.S[u1][v]))
 
             iteration += 1
             if self.isConverged(iteration):
@@ -131,3 +131,23 @@ class WST(SocialRecommender):
                 return self.P[u].dot(self.Q[i])
         else:
             return self.dao.globalMean
+
+
+        # if self.dao.containsUser(u) and self.dao.containsItem(i):
+        #     id = self.dao.getItemId(i)
+        #     fPred = 0
+        #     denom = 0
+        #     relations = self.sao.getFollowees(u)
+        #     for followee in relations:
+        #         weight = relations[followee]
+        #         uf = self.dao.getUserId(followee)
+        #         if uf <> -1 and self.dao.contains(followee,i):  # followee is in rating set
+        #             fPred += weight * (self.dao.rating(followee,i))
+        #             denom += weight
+        #     #u = self.dao.getUserId(u)
+        #     if denom <> 0:
+        #         return fPred / denom
+        #     else:
+        #         return self.dao.userMeans[u]
+        # else:
+        #     return self.dao.globalMean
