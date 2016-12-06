@@ -1,11 +1,11 @@
 from baseclass.SocialRecommender import SocialRecommender
 from tool import config
 class RSTE(SocialRecommender):
-    def __init__(self,conf):
-        super(RSTE, self).__init__(conf)
+    def __init__(self,conf,trainingSet=None,testSet=None,relation=list(),fold='[1]'):
+        super(RSTE, self).__init__(conf,trainingSet,testSet,relation,fold)
 
     def readConfiguration(self):
-        super(SocialRecommender, self).readConfiguration()
+        super(RSTE, self).readConfiguration()
         alpha = config.LineConfig(self.config['RSTE'])
         self.alpha = float(alpha['-alpha'])
 
@@ -32,13 +32,13 @@ class RSTE(SocialRecommender):
                 q = self.Q[i].copy()
                 self.loss += self.regU * p.dot(p) + self.regI * q.dot(q)
                 # update latent vectors
-                self.P[u] = p + self.lRate * (self.alpha*error * q - self.regU * p)
-                self.Q[i] = q + self.lRate * (self.alpha*error * p - self.regI * q)
+                self.P[u] += self.lRate * (self.alpha*error * q - self.regU * p)
+                self.Q[i] += self.lRate * (self.alpha*error * p - self.regI * q)
             iteration += 1
             self.isConverged(iteration)
 
     def predict(self,u,i):
-        if self.dao.containsUser(u) and self.dao.containsItem(i):
+        if self.dao.containsUser(u) and self.dao.containsItem(i):   
             i = self.dao.getItemId(i)
             fPred = 0
             denom = 0
